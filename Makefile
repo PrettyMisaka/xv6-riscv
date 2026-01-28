@@ -35,6 +35,12 @@ OBJS = \
 #TOOLPREFIX = 
 
 # Try to infer the correct TOOLPREFIX if not set
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)  # macOS
+    TOOLPREFIX = riscv64-unknown-elf-
+    QEMU = qemu-system-riscv64
+else
+TOOLPREFIX=/opt/riscv/bin/riscv64-unknown-elf-
 ifndef TOOLPREFIX
 TOOLPREFIX := $(shell if riscv64-unknown-elf-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
 	then echo 'riscv64-unknown-elf-'; \
@@ -51,8 +57,9 @@ TOOLPREFIX := $(shell if riscv64-unknown-elf-objdump -i 2>&1 | grep 'elf64-big' 
 	echo "*** To turn off this error, run 'gmake TOOLPREFIX= ...'." 1>&2; \
 	echo "***" 1>&2; exit 1; fi)
 endif
+QEMU = /home/lyy/Downloads/qemu-8.0.0/build/qemu-system-riscv64
+endif
 
-QEMU = qemu-system-riscv64
 MIN_QEMU_VERSION = 7.2
 
 CC = $(TOOLPREFIX)gcc
