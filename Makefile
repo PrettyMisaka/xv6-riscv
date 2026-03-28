@@ -2,8 +2,8 @@ K=kernel
 U=user
 
 OBJS = \
-  $K/entry.o \
-  $K/start.o \
+  $K/vs_entry.o \
+  $K/vs_start.o \
   $K/console.o \
   $K/printf.o \
   $K/uart.o \
