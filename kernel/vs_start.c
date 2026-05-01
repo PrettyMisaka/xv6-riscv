@@ -25,7 +25,11 @@ void start(uint64 pagetable, uint64 end)
         printf("%p %p\n", (void*)pagetable, (void*)end);
     }
 
-    w_sie(r_sie() | SIE_SEIE | SIE_STIE);
+    // NOTE: Do NOT set vsie here — trapinithart() in main() must set vstvec FIRST
+    // before enabling any interrupts. Setting vsie.STIE before vstvec is configured
+    // causes VS-mode timer traps to jump to vstvec=0 and crash.
+    // Interrupt enable is done by scheduler() -> intr_on() after trapinithart() runs.
+    // w_sie(r_sie() | SIE_SEIE | SIE_STIE);
     // timerinit();
 
     // asm volatile("sret");
