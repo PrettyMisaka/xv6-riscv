@@ -164,7 +164,10 @@ mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
       return -1;
     if(*pte & PTE_V)
       panic("mappages: remap");
-    *pte = PA2PTE(pa) | perm | PTE_V;
+    // Force A/D: required by QEMU 9+ with Svadu when henvcfg.ADUE is 0
+    // (QEMU then refuses to translate PTEs without preset A/D bits).
+    // Mirrors the hypervisor's mappages() in core/src/ptl.c.
+    *pte = PA2PTE(pa) | perm | PTE_V | PTE_A | PTE_D;
     if(a == last)
       break;
     a += PGSIZE;
