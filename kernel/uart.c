@@ -73,9 +73,10 @@ uartinit(void)
   initlock(&tx_lock, "uart");
 }
 
-// transmit buf[] to the uart. it blocks if the
-// uart is busy, so it cannot be called from
-// interrupts, only from write() system calls.
+// transmit buf[] to the uart. it polls (busy-wait) for the uart to become
+// ready, so it does not depend on a UART interrupt.  This is the pass-through
+// path: the guest talks to the real UART hardware directly (direct-mapped by
+// the hypervisor), and the hypervisor does not intercept/forward UART IRQs.
 void
 uartwrite(char buf[], int n)
 {
@@ -83,12 +84,8 @@ uartwrite(char buf[], int n)
 
   int i = 0;
   while(i < n){ 
-    while(tx_busy != 0){
-      // wait for a UART transmit-complete interrupt
-      // to set tx_busy to 0.
-      sleep(&tx_chan, &tx_lock);
-    }   
-      
+    while((ReadReg(LSR) & LSR_TX_IDLE) == 0)
+      ;
     WriteReg(THR, buf[i]);
     i += 1;
     tx_busy = 1;

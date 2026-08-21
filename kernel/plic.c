@@ -11,8 +11,9 @@
 void
 plicinit(void)
 {
-  // set desired IRQ priorities non-zero (otherwise disabled).
-  *(uint32*)(PLIC + UART0_IRQ*4) = 1;
+  // Set the VIRTIO disk IRQ priority (used by the hypervisor).  The UART is
+  // passed through to the guest and polled by the guest, so it is NOT enabled
+  // here — otherwise the UART IRQ would fire at the hypervisor and loop.
   *(uint32*)(PLIC + VIRTIO0_IRQ*4) = 1;
 }
 
@@ -21,9 +22,10 @@ plicinithart(void)
 {
   int hart = cpuid();
   
-  // set enable bits for this hart's S-mode
-  // for the uart and virtio disk.
-  *(uint32*)PLIC_SENABLE(hart) = (1 << UART0_IRQ) | (1 << VIRTIO0_IRQ);
+  // enable the VIRTIO disk IRQ for this hart's S-mode.  The UART is polled by
+  // the guest, so don't enable its IRQ (the hypervisor would otherwise receive
+  // it endlessly since we don't claim it).
+  *(uint32*)PLIC_SENABLE(hart) = (1 << VIRTIO0_IRQ);
 
   // set this hart's S-mode priority threshold to 0.
   *(uint32*)PLIC_SPRIORITY(hart) = 0;
