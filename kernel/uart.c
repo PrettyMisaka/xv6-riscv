@@ -67,8 +67,9 @@ uartinit(void)
   // reset and enable FIFOs.
   WriteReg(FCR, FCR_FIFO_ENABLE | FCR_FIFO_CLEAR);
 
-  // enable transmit and receive interrupts.
-  WriteReg(IER, IER_TX_ENABLE | IER_RX_ENABLE);
+  // enable receive interrupts (input).  Transmit is polled by uartwrite(), so
+  // the TX interrupt is not enabled (it would otherwise wake the hypervisor).
+  WriteReg(IER, IER_RX_ENABLE);
 
   initlock(&tx_lock, "uart");
 }
