@@ -41,5 +41,11 @@ main()
     plicinithart();   // ask PLIC for device interrupts
   }
 
+  // arm the VS timer: stimecmp aliases to vstimecmp (henvcfg.STCE set by
+  // the hypervisor); the hardware then raises VSTIP directly to the guest,
+  // with no hypervisor involvement on each tick.  vstvec is already set
+  // (trapinithart above), so a pending VSTIP is safe.
+  timerinit();
+
   scheduler();        
 }

@@ -38,18 +38,13 @@ void start(uint64 pagetable, uint64 end)
 }
 
 // ask each hart to generate timer interrupts.
+// VS-mode safe: stimecmp is S-mode accessible and aliases to vstimecmp
+// (the hypervisor has already set henvcfg.STCE).  The M-mode CSRs
+// (mie/menvcfg/mcounteren) are illegal in VS-mode and must not be touched.
+// Must be called after trapinithart() has installed vstvec.
 void
 timerinit()
 {
-  // enable supervisor-mode timer interrupts.
-  w_mie(r_mie() | MIE_STIE);
-  
-  // enable the sstc extension (i.e. stimecmp).
-  w_menvcfg(r_menvcfg() | (1L << 63)); 
-  
-  // allow supervisor to use stimecmp and time.
-  w_mcounteren(r_mcounteren() | 2);
-  
   // ask for the very first timer interrupt.
   w_stimecmp(r_time() + 1000000);
 }
